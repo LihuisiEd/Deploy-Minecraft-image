@@ -1,38 +1,12 @@
 FROM ubuntu:latest
 
-# Instalar Xserver y dependencias
-RUN apt-get update && \
-    apt-get install -y x11-apps xauth && \
-    apt-get clean
+RUN apt update && \
+    DEBIAN_FRONTEND=noninteractive apt install -y wget openjdk-8-jdk
 
-# Instalar OpenJDK y Minecraft
-RUN apt-get update && \
-    apt-get install -y openjdk-8-jdk && \
-    mkdir /opt/minecraft && \
-    cd /opt/minecraft && \
-    wget https://launcher.mojang.com/v1/objects/8d008b9a0952cfe2616236b8bc6b146d03a3a463/server.jar
+RUN wget -q https://launcher.mojang.com/download/Minecraft.deb && \
+    dpkg -i Minecraft.deb && \
+    rm Minecraft.deb
 
-# Definir variables de entorno para Xserver
 ENV DISPLAY=:0
-ENV XAUTHORITY=/.Xauthority
 
-# Agregar usuario minecraft
-RUN useradd -m minecraft
-
-# Copiar archivo de configuración del servidor
-COPY server.properties /opt/minecraft/server.properties
-
-# Cambiar propietario de la carpeta del servidor
-RUN chown -R minecraft:minecraft /opt/minecraft
-
-# Configurar entrada de Minecraft en el archivo .xinitrc
-RUN echo "java -Xmx1024M -Xms1024M -jar /opt/minecraft/server.jar nogui" >> /home/minecraft/.xinitrc
-
-# Establecer usuario para iniciar sesión en Xserver
-USER minecraft
-
-# Exponer puerto del servidor
-EXPOSE 25565
-
-# Iniciar Xserver y Minecraft
-CMD ["startx"]
+CMD minecraft-launcher
